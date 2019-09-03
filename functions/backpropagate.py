@@ -1,7 +1,11 @@
-from functions import run
+from functions import run, SQLite
 
 
 def cost(a, w, b, y):
+  """Determines the optimal weights, biases, and activations for each node.
+
+  The name has nothing to do with what it does
+  """
   w2 = [[] for i in range(len(a[-1]))]
   b2 = []
   y2 = [[] for i in range(len(a[-2]))]
@@ -17,23 +21,27 @@ def cost(a, w, b, y):
 
 
 def function(accuracy, times):
+  """Calls cost() for some training data and averages the results
+  """
   with open("data/weights.txt") as f: w = eval(f.read())
   with open("data/biases.txt") as f: b = eval(f.read())
-  d = open("data/input.txt")
   for g in range(times):
     NN_cost = [[], []]
     for h in range(accuracy):
-      c = cost(run.function(eval(d.readline())), w, b, eval(d.readline()))
+      d = SQLite.get_row(True)
+      if not d: break
+      c = cost(run.function(eval(d[0])), w, b, eval(d[1]))
       NN_cost[0].append(c[0])
       NN_cost[1].append(c[1])
-      d.readline()
+    if not d: break
     with open("data/weights.txt", "w") as f: f.write(multi_list_averager(NN_cost[0]))
     with open("data/biases.txt", "w") as f: f.write(multi_list_averager(NN_cost[1]))
-  d.close()
-  return NN_cost
+  if not d: print("SQLite Get Row Error:  No Rows In Table \nPlease insert training data and try again.")
 
 
 def multi_list_averager(multi_list):
+  """Gets the column average for a 2d list of lists.
+  """
   avg = []
   for i in range(len(multi_list[0])):
     avg.append([])
